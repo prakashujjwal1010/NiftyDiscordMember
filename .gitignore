@@ -10,7 +10,6 @@ packages/hardhat/*.txt
 **/node_modules
 packages/hardhat/artifacts
 packages/hardhat/deployments
-packages/react-app/src/contracts
 packages/hardhat/cache
 
 docker/**/data
