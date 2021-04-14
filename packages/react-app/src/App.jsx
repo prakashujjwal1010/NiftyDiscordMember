@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
 import "antd/dist/antd.css";
-import {  JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
+import {  JsonRpcProvider, StaticJsonRpcProvider, Web3Provider } from "@ethersproject/providers";
 import {  LinkOutlined } from "@ant-design/icons"
 import "./App.css";
 import { Row, Col, Button, Menu, Alert, Input, List, Card, Switch as SwitchD } from "antd";
@@ -13,7 +13,7 @@ import { Header, Account, Faucet, Ramp, Contract, GasGauge, Address, AddressInpu
 import { Transactor } from "./helpers";
 import { formatEther, parseEther } from "@ethersproject/units";
 import { utils } from "ethers";
-import { Home, ExampleUI, Subgraph, NoWalletDetected, RedirectPage, MintView } from "./views"
+import { Home, ExampleUI, Subgraph, NoWalletDetected, RedirectPage, MintView, Creations } from "./views"
 import { useThemeSwitcher } from "react-css-theme-switcher";
 import { INFURA_ID, DAI_ADDRESS, DAI_ABI, NETWORK, NETWORKS } from "./constants";
 import StackGrid from "react-stack-grid";
@@ -23,18 +23,11 @@ import { defaultAbiCoder } from "@ethersproject/abi"
 import { get, getBot, post } from "./helpers/api";
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const DiscordOauth2 = require("discord-oauth2");
-/*const oauth = new DiscordOauth2({
-    clientId: process.env.DISCORD_CLIENT_ID,
-    clientSecret: process.env.DISCORD_CLIENT_SECRET,
-    redirectUri: process.env.DISCORD_REDIRECT_URI,
-});
-*/
 const oauth = new DiscordOauth2({
-    clientId: '829642321163059211',
-    clientSecret: 'vypllS7VSnTy9zpqDr8LnSOh1NMwmdZV',
-    redirectUri: 'http://localhost:3000/redirect',
+    clientId: process.env.REACT_APP_DISCORD_CLIENT_ID,
+    clientSecret: process.env.REACT_APP_DISCORD_CLIENT_SECRET,
+    redirectUri: process.env.REACT_APP_DISCORD_REDIRECT_URI,
 });
-
 
 const { BufferList } = require('bl')
 // https://www.npmjs.com/package/ipfs-http-client
@@ -89,7 +82,7 @@ if(DEBUG) console.log("📡 Connecting to Mainnet Ethereum");
 //
 // attempt to connect to our own scaffold eth rpc and if that fails fall back to infura...
 //const scaffoldEthProvider = new JsonRpcProvider("https://rpc.scaffoldeth.io:48544")
-const mainnetInfura = new JsonRpcProvider("https://mainnet.infura.io/v3/" + INFURA_ID)
+const mainnetInfura = new StaticJsonRpcProvider("https://mainnet.infura.io/v3/" + INFURA_ID)
 // ( ⚠️ Getting "failed to meet quorum" errors? Check your INFURA_I
 
 // 🏠 Your local provider is usually pointed at your local blockchain
@@ -116,7 +109,8 @@ function App(props) {
   const price = useExchangePrice(targetNetwork,mainnetProvider);
 
   /* 🔥 This hook will get the price of Gas from ⛽️ EtherGasStation */
-  const gasPrice = useGasPrice(targetNetwork,"fast");
+  //const gasPrice = useGasPrice(targetNetwork,"fast");
+  let gasPrice;
   // Use your injected provider from 🦊 Metamask or if you don't have it then instantly generate a 🔥 burner wallet.
   const userProvider = useUserProvider(injectedProvider, null);
 
@@ -150,6 +144,9 @@ function App(props) {
   // keep track of a variable from the contract in the local React state:
   const balance = useContractReader(readContracts,"YourCollectible", "balanceOf", [ address ])
   if(DEBUG) console.log("🤗 balance:",balance)
+  const creatorBalance = useContractReader(readContracts,"YourCollectible", "getNoOfTokensCreated", [ address ])
+  if(DEBUG) console.log("🤗 creatorBalance:",creatorBalance)
+
 
   //📟 Listen for broadcast events
   const transferEvents = useEventListener(readContracts, "YourCollectible", "Transfer", userProvider, 1);
@@ -183,8 +180,6 @@ function App(props) {
         const tokenURI = await readContracts.YourCollectible.tokenURI(tokenId)
         let tokenStatus = await readContracts.YourCollectible.getTokenStatus(tokenId)
         tokenStatus = tokenStatus.toNumber();
-        console.log(tokenStatus);
-
         const ipfsHash =  tokenURI.replace("https://ipfs.io/ipfs/","")
         console.log("ipfsHash",ipfsHash)
 
@@ -192,7 +187,7 @@ function App(props) {
 
         try{
           const jsonManifest = JSON.parse(jsonManifestBuffer.toString())
-          console.log("jsonManifest",jsonManifest)
+          //console.log("jsonManifest",jsonManifest)
           collectibleUpdate.push({ id:tokenId, uri:tokenURI, status: tokenStatus, owner: address, ...jsonManifest })
         }catch(e){console.log(e)}
 
@@ -203,6 +198,40 @@ function App(props) {
   useEffect(()=>{
     updateYourCollectibles()
   },[ address, yourBalance ])
+
+  const totalTokensCreated = creatorBalance && creatorBalance.toNumber && creatorBalance.toNumber()
+  const [ yourCreations, setYourCreations ] = useState()
+  const updateYourCreations = async () => {
+    let collectibleUpdate = []
+    for(let tokenIndex=0;tokenIndex<creatorBalance;tokenIndex++){
+      try{
+        const tokenId = await readContracts.YourCollectible.tokenOfCreatorByIndex(address, tokenIndex)
+        const owner = await readContracts.YourCollectible.ownerOf(tokenId)
+        const tokenURI = await readContracts.YourCollectible.tokenURI(tokenId)
+        let tokenStatus = await readContracts.YourCollectible.getTokenStatus(tokenId)
+        tokenStatus = tokenStatus.toNumber();
+        let ownerDiscordID = await readContracts.YourCollectible.getTokenOwnerDiscordID(tokenId)
+        console.log(ownerDiscordID);
+
+        const ipfsHash =  tokenURI.replace("https://ipfs.io/ipfs/","")
+        console.log("ipfsHash",ipfsHash)
+
+        const jsonManifestBuffer = await getFromIPFS(ipfsHash)
+
+        try{
+          const jsonManifest = JSON.parse(jsonManifestBuffer.toString())
+          console.log("jsonManifest",jsonManifest)
+          collectibleUpdate.push({ id:tokenId, uri:tokenURI, status: tokenStatus, ownerDiscordID:ownerDiscordID, owner: owner, ...jsonManifest })
+        }catch(e){console.log(e)}
+
+      }catch(e){console.log(e)}
+    }
+    setYourCreations(collectibleUpdate)
+  }
+  useEffect(()=>{
+    updateYourCreations()
+  },[ address, totalTokensCreated ])
+
 
   let networkDisplay = ""
   if(localChainId && selectedChainId && localChainId != selectedChainId ){
@@ -319,8 +348,11 @@ function App(props) {
           <Menu.Item key="/gallery">
             <Link onClick={()=>{setRoute("/gallery")}} to="/gallery">Gallery</Link>
           </Menu.Item>
+          <Menu.Item key="/creations">
+            <Link onClick={()=>{setRoute("/creations")}} to="/creations">Created</Link>
+          </Menu.Item>
           <Menu.Item key="/yourcollectibles">
-            <Link onClick={()=>{setRoute("/yourcollectibles")}} to="/yourcollectibles">YourCollectibles</Link>
+            <Link onClick={()=>{setRoute("/yourcollectibles")}} to="/yourcollectibles">Owned</Link>
           </Menu.Item>
           <Menu.Item key="/transfers">
             <Link onClick={()=>{setRoute("/transfers")}} to="/transfers">Transfers</Link>
@@ -377,6 +409,13 @@ function App(props) {
               />
             )}
           </Route>
+          <Route exact path="/creations">
+            <Creations
+              itemsList={yourCollectibles}
+              mainnetProvider={mainnetProvider}
+              blockExplorer={blockExplorer}
+            />
+          </Route>
 
           <Route path="/yourcollectibles">
             {!isValidSession() ? (
@@ -396,8 +435,10 @@ function App(props) {
                           </div>
                         )}>
                           <div><img src={item.imageUrl} style={{maxWidth:150}} /></div>
-                          <div>role: {item.role}</div>
-                          <div>description: {item.description}</div>
+                          <h5>Creator: {item.creator}</h5>
+                          <h5>Discord Role: {item.role}</h5>
+                          <h5>Discord Server: {item.guild ? item.guild : " "}</h5>
+                          <h5>description: {item.description}</h5>
                         </Card>
 
                         <div>
@@ -416,7 +457,7 @@ function App(props) {
                                     userData: defaultAbiCoder.encode(["uint256", "uint256"], [id, user.id]),
                                   });
                                   updateYourCollectibles();
-                                  //updateTokensCreatedList();
+                                  updateYourCreations();
                                 }
                               }}>
                                 Activate Access
@@ -437,7 +478,7 @@ function App(props) {
                                       userData: defaultAbiCoder.encode(["uint256", "uint256"], [id, user.id]),
                                     });
                                     updateYourCollectibles();
-                                    //updateTokensCreatedList();
+                                    updateYourCreations();
                                   }
 
                                 }}>
@@ -466,6 +507,7 @@ function App(props) {
                               update[id] = newValue
                               setTransferToAddresses({ ...transferToAddresses, ...update})
                             }}
+                            key={id+"_"+item.uri+"_"+item.owner}
                           />
                           <Button style={{marginTop:10}} onClick={()=>{
                             console.log("writeContracts",writeContracts)
@@ -607,7 +649,7 @@ function App(props) {
            </Col>
 
            <Col span={8} style={{ textAlign: "center", opacity: 0.8 }}>
-             <GasGauge gasPrice={gasPrice} />
+             <GasGauge />
            </Col>
            <Col span={8} style={{ textAlign: "center", opacity: 1 }}>
              <Button

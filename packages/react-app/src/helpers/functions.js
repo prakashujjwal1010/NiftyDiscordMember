@@ -29,7 +29,7 @@ export const setAuthHeaderBot = () => {
     if (params) {
       axios.defaults.headers.common[
         'Authorization'
-      ] = `Bot ODI5NjQyMzIxMTYzMDU5MjEx.YG7Gnw.YaW2Qje9GPddrwOlvsHwN2_eEbg`;
+      ] = `Bot ${params.access_token}`;
 
     }
   } catch (error) {

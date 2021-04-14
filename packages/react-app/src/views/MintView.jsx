@@ -143,8 +143,9 @@ export default function MintView({ itemsList, address, tx, writeContracts, mainn
               //genrating ipfs hash
               let yourJSON = {
                 ...form,
-                guildID: (serverSelected ? serverSelected.id : "" ),
-                creator: user.name
+                guild: (serverSelected ? serverSelected.name : "" ),
+                creator: user.name,
+                channels: channels
               }
               console.log("UPLOADING...",yourJSON)
               const result = await ipfs.add(JSON.stringify(yourJSON))//addToIPFS(JSON.stringify(yourJSON))
