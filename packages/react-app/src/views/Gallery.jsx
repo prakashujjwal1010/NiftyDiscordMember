@@ -75,7 +75,7 @@ export default function Gallery({ address, tx, writeContracts, mainnetProvider, 
     let upd = {}
     for (var i = 0; i < roles.length; i++) {
       const id = roles[i].id;
-      upd[id] = {imageUrl: getRandomImageUrl()}
+      upd[id] = {imageUrl: getRandomImageUrl(), fees: '385802469135802'}
     }
     setForm({ ...form, ...upd})
   },[roles])
@@ -228,6 +228,23 @@ export default function Gallery({ address, tx, writeContracts, mainnetProvider, 
                 }}
               />
               </div>
+              <div>
+              💸 <Input
+                size="small"
+                style={{width:180, margin: "auto", marginTop:10}}
+                placeholder="Enter Subscription fees for Membership"
+                autoComplete="off"
+                value={form[id] ? form[id].fees : '385802469135802'}
+                name="fees"
+                onChange={(e)=>{
+                  const newValue = e.target.value;
+                  let update = {}
+                  update[id] = {...form[id], fees: newValue}
+                  setForm({ ...form, ...update})
+                  //console.log(form);
+                }}
+              />
+              </div>
               <h4 style={{margin: "auto", marginTop:10}}>
                 SERVER: <span class="highlight" style={{ marginLeft: 4, padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
                   {serverSelected ? serverSelected.name : ""}
@@ -247,7 +264,9 @@ export default function Gallery({ address, tx, writeContracts, mainnetProvider, 
                   {item.rank}
                 </span>
               </h4>
-              <Button style={{margin: "auto", marginTop:10}} disabled={channelsSelected.length==0 || !serverSelected} onClick={async ()=>{
+              <Button style={{margin: "auto", marginTop:10}}
+                disabled={channelsSelected.length==0 || !serverSelected || !form[id].description || form[id].description=="" || !form[id].fees || form[id].fees==""}
+                onClick={async ()=>{
                 if(!serverSelected) {
                   console.log('select server please!');
                   return ;
@@ -262,6 +281,11 @@ export default function Gallery({ address, tx, writeContracts, mainnetProvider, 
                   console.log('enter description please!');
                   return ;
                 }
+
+                if(!form[id].fees || form[id].fees=="") {
+                  console.log('enter subscription fees please!');
+                  return ;
+                }
                 //genrating ipfs hash
                 let yourJSON = {
                   name: item.name,
@@ -274,6 +298,7 @@ export default function Gallery({ address, tx, writeContracts, mainnetProvider, 
                   guild: (serverSelected ? serverSelected.name : "" ),
                   creator: user.username,
                   channels: channelsSelected,
+                  fees: form[id].fees,
                   attributes:[
                     {
                       trait_type: "Role's rank",
