@@ -13,7 +13,7 @@ import { Header, Account, Faucet, Ramp, Contract, GasGauge, Address, AddressInpu
 import { Transactor } from "./helpers";
 import { formatEther, parseEther } from "@ethersproject/units";
 import { utils } from "ethers";
-import { Home, ExampleUI, Subgraph, NoWalletDetected, RedirectPage, MintView, Creations } from "./views"
+import { Home, ExampleUI, Subgraph, NoWalletDetected, RedirectPage, MintView, Creations, Gallery } from "./views"
 import { useThemeSwitcher } from "react-css-theme-switcher";
 import { INFURA_ID, DAI_ADDRESS, DAI_ABI, NETWORK, NETWORKS } from "./constants";
 import StackGrid from "react-stack-grid";
@@ -21,6 +21,7 @@ import ReactJson from 'react-json-view'
 import assets from './assets.js'
 import { defaultAbiCoder } from "@ethersproject/abi"
 import { get, getBot, post } from "./helpers/api";
+import { colorToHexString } from "./helpers/functions";
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const DiscordOauth2 = require("discord-oauth2");
 const oauth = new DiscordOauth2({
@@ -188,7 +189,7 @@ function App(props) {
         try{
           const jsonManifest = JSON.parse(jsonManifestBuffer.toString())
           //console.log("jsonManifest",jsonManifest)
-          collectibleUpdate.push({ id:tokenId, uri:tokenURI, status: tokenStatus, owner: address, ...jsonManifest })
+          collectibleUpdate.push({ ...jsonManifest, id:tokenId, uri:tokenURI, status: tokenStatus, owner: address })
         }catch(e){console.log(e)}
 
       }catch(e){console.log(e)}
@@ -211,17 +212,14 @@ function App(props) {
         let tokenStatus = await readContracts.YourCollectible.getTokenStatus(tokenId)
         tokenStatus = tokenStatus.toNumber();
         let ownerDiscordID = await readContracts.YourCollectible.getTokenOwnerDiscordID(tokenId)
-        console.log(ownerDiscordID);
-
         const ipfsHash =  tokenURI.replace("https://ipfs.io/ipfs/","")
-        console.log("ipfsHash",ipfsHash)
-
         const jsonManifestBuffer = await getFromIPFS(ipfsHash)
 
         try{
           const jsonManifest = JSON.parse(jsonManifestBuffer.toString())
           console.log("jsonManifest",jsonManifest)
-          collectibleUpdate.push({ id:tokenId, uri:tokenURI, status: tokenStatus, ownerDiscordID:ownerDiscordID, owner: owner, ...jsonManifest })
+          const obj =
+          collectibleUpdate.push({ ...jsonManifest, id:tokenId, uri:tokenURI, status: tokenStatus, ownerDiscordID:ownerDiscordID, owner: owner })
         }catch(e){console.log(e)}
 
       }catch(e){console.log(e)}
@@ -308,28 +306,6 @@ function App(props) {
 
   const [ transferToAddresses, setTransferToAddresses ] = useState({})
 
-  const [ loadedAssets, setLoadedAssets ] = useState()
-  useEffect(()=>{
-    const updateYourCollectibles = async () => {
-      let assetUpdate = []
-      for(let a in assets){
-        try{
-          //const forSale = await readContracts.YourCollectible.forSale(utils.id(a))
-          const forSale = true;
-          let owner
-          if(!forSale){
-            const tokenId = await readContracts.YourCollectible.uriToTokenId(utils.id(a))
-            owner = await readContracts.YourCollectible.ownerOf(tokenId)
-          }
-          assetUpdate.push({id:a,...assets[a],forSale:forSale,owner:owner})
-        }catch(e){console.log(e)}
-      }
-      setLoadedAssets(assetUpdate)
-    }
-    if(readContracts && readContracts.YourCollectible) updateYourCollectibles()
-  }, [ assets, readContracts, transferEvents ]);
-
-
   if (window.ethereum === undefined) {
       return <NoWalletDetected />;
     }
@@ -356,15 +332,6 @@ function App(props) {
           </Menu.Item>
           <Menu.Item key="/transfers">
             <Link onClick={()=>{setRoute("/transfers")}} to="/transfers">Transfers</Link>
-          </Menu.Item>
-          <Menu.Item key="/ipfsup">
-            <Link onClick={()=>{setRoute("/ipfsup")}} to="/ipfsup">IPFS Upload</Link>
-          </Menu.Item>
-          <Menu.Item key="/ipfsdown">
-            <Link onClick={()=>{setRoute("/ipfsdown")}} to="/ipfsdown">IPFS Download</Link>
-          </Menu.Item>
-          <Menu.Item key="/debugcontracts">
-            <Link onClick={()=>{setRoute("/debugcontracts")}} to="/debugcontracts">Debug Contracts</Link>
           </Menu.Item>
         </Menu>
 
@@ -398,8 +365,21 @@ function App(props) {
             {!isValidSession() ? (
               <LogInDiscord />
             ): (
+              <Gallery
+                address={address}
+                tx={tx}
+                writeContracts={writeContracts}
+                mainnetProvider={mainnetProvider}
+                blockExplorer={blockExplorer}
+                ipfs={ipfs}
+              />
+            )}
+          </Route>
+          <Route exact path="/create">
+            {!isValidSession() ? (
+              <LogInDiscord />
+            ): (
               <MintView
-                itemsList={loadedAssets}
                 address={address}
                 tx={tx}
                 writeContracts={writeContracts}
@@ -421,7 +401,7 @@ function App(props) {
             {!isValidSession() ? (
               <LogInDiscord />
             ): (
-              <div style={{ width:640, margin: "auto", marginTop:32, paddingBottom:32 }}>
+              <div style={{ width:820, margin: "auto", marginTop:32, paddingBottom:32 }}>
                 <List
                   bordered
                   dataSource={yourCollectibles}
@@ -429,16 +409,47 @@ function App(props) {
                     const id = item.id.toNumber()
                     return (
                       <List.Item key={id+"_"+item.uri+"_"+item.owner}>
-                        <Card title={(
-                          <div>
-                            <span style={{fontSize:16, marginRight:8}}>#{id}</span> {item.name}
+                        <Card style={{width:400, backgroundColor: colorToHexString(item.background_color)}} title={(
+                          <div style={{margin: "auto", marginTop:10}}>
+                            #<span class="highlight" style={{ marginLeft: 4, padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
+                              {id} {item.name}
+                            </span>
                           </div>
                         )}>
-                          <div><img src={item.imageUrl} style={{maxWidth:150}} /></div>
-                          <h5>Creator: {item.creator}</h5>
-                          <h5>Discord Role: {item.role}</h5>
-                          <h5>Discord Server: {item.guild ? item.guild : " "}</h5>
-                          <h5>description: {item.description}</h5>
+                          <div><img src={item.image} style={{maxWidth:150}} /></div>
+                          <h4 style={{margin: "auto", marginTop:10}}>
+                            STATUS: <span class="highlight" style={{ marginLeft: 4, padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
+                            {item.status==0 ?  "NOT YET ACTIVATED"  :
+                              (
+                                item.status == 1 ?  "ACTIVATED"  : "ARCHIVED"
+                              )
+                            }
+                            </span>
+                          </h4>
+                          <h4 style={{margin: "auto", marginTop:10}}>
+                            CREATOR: <span class="highlight" style={{ marginLeft: 4, padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
+                              {item.creator}
+                            </span>
+                          </h4>
+                          <h4 style={{margin: "auto", marginTop:10}}>
+                            SERVER: <span class="highlight" style={{ marginLeft: 4, padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
+                              {item.guild ? item.guild : " "}
+                            </span>
+                          </h4>
+                          <h4 style={{margin: "auto", marginTop:10}}>
+                            CHANNELS: {item.channels.map((channelItem, indxx) => {
+                              return(
+                                <span key={"channelName-"+channelItem.id+"-"+id+"-"+indxx} class="highlight" style={{ marginLeft: 4, padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
+                                  {channelItem.name}
+                                </span>
+                              )
+                            })}
+                          </h4>
+                          <h4 style={{margin: "auto", marginTop:10}}>
+                            RANK: <span class="highlight" style={{ marginLeft: 4, padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
+                              {item.rank}
+                            </span>
+                          </h4>
                         </Card>
 
                         <div>
@@ -550,42 +561,6 @@ function App(props) {
             </div>
           </Route>
 
-          <Route path="/ipfsup">
-            <div style={{ paddingTop:32, width:740, margin:"auto", textAlign:"left" }}>
-              <ReactJson
-                style={{ padding:8 }}
-                src={yourJSON}
-                theme={"pop"}
-                enableClipboard={false}
-                onEdit={(edit,a)=>{
-                  setYourJSON(edit.updated_src)
-                }}
-                onAdd={(add,a)=>{
-                  setYourJSON(add.updated_src)
-                }}
-                onDelete={(del,a)=>{
-                  setYourJSON(del.updated_src)
-                }}
-              />
-            </div>
-
-            <Button style={{margin:8}} loading={sending} size="large" shape="round" type="primary" onClick={async()=>{
-                console.log("UPLOADING...",yourJSON)
-                setSending(true)
-                setIpfsHash()
-                const result = await ipfs.add(JSON.stringify(yourJSON))//addToIPFS(JSON.stringify(yourJSON))
-                if(result && result.path) {
-                  setIpfsHash(result.path)
-                }
-                setSending(false)
-                console.log("RESULT:",result)
-            }}>Upload to IPFS</Button>
-
-            <div  style={{padding:16,paddingBottom:150}}>
-              {ipfsHash}
-            </div>
-
-          </Route>
           <Route path="/ipfsdown">
               <div style={{ paddingTop:32, width:740, margin:"auto" }}>
                 <Input
@@ -611,15 +586,6 @@ function App(props) {
                 {ipfsContent}
               </pre>
           </Route>
-          <Route path="/debugcontracts">
-              <Contract
-                name="YourCollectible"
-                signer={userProvider && userProvider.getSigner()}
-                provider={userProvider}
-                address={address}
-                blockExplorer={blockExplorer}
-              />
-          </Route>
         </Switch>
       </BrowserRouter>
 
@@ -643,18 +609,14 @@ function App(props) {
 
       {/* 🗺 Extra UI like gas price, eth price, faucet, and support: */}
        <div style={{ position: "fixed", textAlign: "left", left: 0, bottom: 20, padding: 10 }}>
-         <Row align="middle" gutter={[4, 4]}>
-           <Col span={8}>
+         <Row align="middle" gutter={[4]}>
+           <Col span={12}>
              <Ramp price={price} address={address} networks={NETWORKS}/>
            </Col>
-
-           <Col span={8} style={{ textAlign: "center", opacity: 0.8 }}>
-             <GasGauge />
-           </Col>
-           <Col span={8} style={{ textAlign: "center", opacity: 1 }}>
+           <Col span={12} style={{ textAlign: "center", opacity: 1 }}>
              <Button
                onClick={() => {
-                 window.open("https://t.me/joinchat/KByvmRe5wkR-8F_zz6AjpA");
+                 window.open("https://github.com/prakashujjwal1010/NiftyDiscordMember");
                }}
                size="large"
                shape="round"

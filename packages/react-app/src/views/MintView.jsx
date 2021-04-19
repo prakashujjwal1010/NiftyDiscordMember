@@ -6,7 +6,7 @@ import StackGrid from "react-stack-grid";
 import { get, getBot, post } from "../helpers/api";
 
 
-export default function MintView({ itemsList, address, tx, writeContracts, mainnetProvider, blockExplorer, ipfs }) {
+export default function MintView({ address, tx, writeContracts, mainnetProvider, blockExplorer, ipfs }) {
   const [serverSelected, setServerSelected] = useState();
   const [servers, setServers] = useState([]);
   const [user, setUser] = useState();
@@ -26,11 +26,9 @@ export default function MintView({ itemsList, address, tx, writeContracts, mainn
     const loadUserData = async () => {
       const me = await get('https://discord.com/api/v8/users/@me');
       setUser(me);
-      //console.log(me);
       let myServers = await get('https://discord.com/api/v8/users/@me/guilds');
       myServers = myServers.filter(item => item.owner==true);
       setServers(myServers);
-      //console.log(myServers);
     }
     loadUserData();
   }, [])

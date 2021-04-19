@@ -3,6 +3,7 @@ import { Button, List, Divider, Card, Input, Progress, Spin, Modal } from "antd"
 import { LinkOutlined } from '@ant-design/icons';
 import { Address, Balance } from "../components";
 import StackGrid from "react-stack-grid";
+import { colorToHexString } from "../helpers/functions";
 
 
 export default function Creations({ itemsList, mainnetProvider, blockExplorer }) {
@@ -13,20 +14,44 @@ export default function Creations({ itemsList, mainnetProvider, blockExplorer })
   return (
     <div style={{ maxWidth:820, margin: "auto", marginTop:32, paddingBottom:256 }}>
       <StackGrid
-        columnWidth={200}
+        columnWidth={250}
         gutterWidth={16}
         gutterHeight={16}
       >
         {itemsList.map(item => {
           let cardActions =[];
+          console.log(item);
           let id = item.id.toNumber();
           cardActions.push(
             <div>
-              {item.status==0 ? <h4> NOT YET ACTIVATED </h4> :
-                (
-                  item.status == 1 ? <h4> ACTIVATED </h4> : <h4> ARCHIVED </h4>
-                )
-              }
+              <h4 style={{margin: "auto", marginTop:10}}>
+                STATUS: <span class="highlight" style={{ marginLeft: 4, padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
+                {item.status==0 ?  "NOT YET ACTIVATED"  :
+                  (
+                    item.status == 1 ?  "ACTIVATED"  : "ARCHIVED"
+                  )
+                }
+                </span>
+              </h4>
+              <h4 style={{margin: "auto", marginTop:10}}>
+                SERVER: <span class="highlight" style={{ marginLeft: 4, padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
+                  {item.guild ? item.guild : " "}
+                </span>
+              </h4>
+              <h4 style={{margin: "auto", marginTop:10}}>
+                Channels: {item.channels.map((channelItem, indxx) => {
+                  return(
+                    <span key={"channelName-"+channelItem.id+"-"+id+"-"+indxx} class="highlight" style={{ marginLeft: 4, padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
+                      {channelItem.name}
+                    </span>
+                  )
+                })}
+              </h4>
+              <h4 style={{margin: "auto", marginTop:10}}>
+                RANK: <span class="highlight" style={{ marginLeft: 4, padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
+                  {item.rank}
+                </span>
+              </h4>
               <div>
                 <h4>owned by: </h4>
                 <Address
@@ -41,7 +66,7 @@ export default function Creations({ itemsList, mainnetProvider, blockExplorer })
           )
 
           return(
-            <Card style={{width:200}} key={id+"_"+item.uri+"_"+item.owner}
+            <Card style={{width:250, backgroundColor: colorToHexString(item.background_color)}} key={id+"_"+item.uri+"_"+item.owner}
               actions={cardActions}
               title={(
                 <div>
@@ -49,13 +74,7 @@ export default function Creations({ itemsList, mainnetProvider, blockExplorer })
                 </div>
               )}
             >
-              <img style={{maxWidth:130}} src={item.imageUrl}/>
-              <div style={{opacity:0.77}}>
-                <h5>Creator: {item.creator}</h5>
-                <h5>Discord Role: {item.role}</h5>
-                <h5>Discord Server: {item.guild ? item.guild : " "}</h5>
-                <h5>description: {item.description}</h5>
-              </div>
+              <img style={{maxWidth:130}} src={item.image}/>
             </Card>
           )
         })}

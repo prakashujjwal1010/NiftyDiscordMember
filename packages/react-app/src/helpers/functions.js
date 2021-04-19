@@ -1,5 +1,5 @@
 import axios from 'axios';
-export function getParamValues(url){
+export function getParamValues(url) {
   return url
     //.slice(1)
     .split('&')
@@ -36,3 +36,8 @@ export const setAuthHeaderBot = () => {
     console.log('Error setting auth', error);
   }
 };
+
+
+export const colorToHexString = (dColor) => {
+  return '#' + ("000000" + (((dColor & 0xFF) << 16) + (dColor & 0xFF00) + ((dColor >> 16) & 0xFF)).toString(16)).slice(-6);
+}

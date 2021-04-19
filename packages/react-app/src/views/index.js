@@ -6,3 +6,4 @@ export { default as Home } from "./Home";
 export { default as RedirectPage } from "./RedirectPage";
 export { default as MintView } from "./MintView";
 export { default as Creations } from "./Creations";
+export { default as Gallery } from "./Gallery";
