@@ -18,7 +18,7 @@ export default function Home({oauth, isValidSession, setExpiryTime}) {
         </h1>
 
         <h2 style={{ width: 800, margin: "auto" }}>
-          NiftyDiscordMember is a platform where one can tokenize roles, channels of one's Discord servers.
+          NiftyDiscordMembers is a platform where one can tokenize roles, channels of one's Discord servers.
           Buyers can buy NFT and access the creator's private channels by starting superfluid stream using NFT.
         </h2>
 
@@ -89,7 +89,7 @@ export default function Home({oauth, isValidSession, setExpiryTime}) {
       </h1>
 
       <h2 style={{ width: 800, margin: "auto" }}>
-        NiftyDiscordMember is a platform where one can tokenize roles, channels of one's Discord servers.
+        NiftyDiscordMembers is a platform where one can tokenize roles, channels of one's Discord servers.
         Buyers can buy NFT and access the creator's private channels by starting superfluid stream using NFT.
       </h2>
 

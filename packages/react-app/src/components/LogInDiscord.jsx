@@ -23,7 +23,7 @@ export default function LogInDiscord() {
         <div style={{ width: 350, padding: 16, margin: "auto" }}>
           <Button type="primary" shape="round" size="large" block onClick={async ()=>{
             const state = crypto.randomBytes(16).toString("hex");
-            const url = `${REACT_APP_DISCORD_AUTHORIZE_URI}?response_type=token&client_id=${REACT_APP_DISCORD_CLIENT_ID}&state=${state}&permissions=8&scope=bot%20guilds%20identify`;
+            const url = `${REACT_APP_DISCORD_AUTHORIZE_URI}?response_type=token&client_id=${REACT_APP_DISCORD_CLIENT_ID}&state=${state}&scope=guilds%20identify`;
             //console.log(url);
             window.location = url;
           }}>

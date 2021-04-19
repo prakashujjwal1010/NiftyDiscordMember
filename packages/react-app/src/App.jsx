@@ -391,7 +391,7 @@ function App(props) {
           </Route>
           <Route exact path="/creations">
             <Creations
-              itemsList={yourCollectibles}
+              itemsList={yourCreations}
               mainnetProvider={mainnetProvider}
               blockExplorer={blockExplorer}
             />
