@@ -9,7 +9,7 @@ export default function Home({oauth, isValidSession, setExpiryTime}) {
   if(isValidSession()) {
     return(
       <div>
-        <h1 style={{ margin: 32 }}>
+        <h1 style={{ margin: 20 }}>
           <span style={{ marginRight: 8 }}>🛰</span>
           <b>Welcome</b> to
           <span class="highlight" style={{ marginLeft: 4, padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
@@ -17,7 +17,12 @@ export default function Home({oauth, isValidSession, setExpiryTime}) {
           </span>
         </h1>
 
-        <h2 style={{ marginTop: 32 }}>
+        <h2 style={{ width: 800, margin: "auto" }}>
+          NiftyDiscordMember is a platform where one can tokenize roles, channels of one's Discord servers.
+          Buyers can buy NFT and access the creator's private channels by starting superfluid stream using NFT.
+        </h2>
+
+        <h2 style={{ marginTop: 10 }}>
           <div style={{ width: 350, padding: 16, margin: "auto" }}>
             <Button type="primary" shape="round" size="large" block onClick={async ()=>{
               setExpiryTime('0');
@@ -75,14 +80,18 @@ export default function Home({oauth, isValidSession, setExpiryTime}) {
   }
   return (
     <div>
-
-      <h1 style={{ margin: 32 }}>
+      <h1 style={{ margin: 20 }}>
         <span style={{ marginRight: 8 }}>🛰</span>
         <b>Welcome</b> to
         <span class="highlight" style={{ marginLeft: 4, padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
           NiftyDiscord Members
         </span>
       </h1>
+
+      <h2 style={{ width: 800, margin: "auto" }}>
+        NiftyDiscordMember is a platform where one can tokenize roles, channels of one's Discord servers.
+        Buyers can buy NFT and access the creator's private channels by starting superfluid stream using NFT.
+      </h2>
 
       <LogInDiscord />
       <div className="site-card-wrapper" style={{ maxWidth:900, margin: "auto", marginTop:32, paddingBottom:256 }}>

@@ -14,7 +14,7 @@ export default function LogInDiscord() {
 
   return (
     <div>
-      <h2 style={{ marginTop: 32 }}>
+      <h2 style={{ marginTop: 20 }}>
         To use this app you have to sign in with your
         <span class="highlight" style={{ margin: 4, /*backgroundColor: "#f9f9f9",*/ padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
           discord
