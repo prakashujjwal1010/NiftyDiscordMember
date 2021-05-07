@@ -496,20 +496,38 @@ function App(props) {
                                   Deactivate Access
                                 </Button>
                               </div>
-                            ) : (<div style={{marginTop:20}}> Token Archived </div>)
+                            ) : (
+                              <h4 style={{margin: "auto", marginTop:10}}>
+                                <span class="highlight" style={{ marginLeft: 4, padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
+                                  TOKEN ARCHIVED
+                                </span>
+                              </h4>
+                            )
                           )
                         }
-                          <div>
-                            Your Discord: {user && (user.username)} ({user && (user.id)} )
-                          </div>
-                          owner: <Address
-                              address={item.owner}
-                              ensProvider={mainnetProvider}
-                              blockExplorer={blockExplorer}
-                              fontSize={16}
-                          />
+                          <h4 style={{margin: "auto", marginTop:10}}>
+                            Your Discord: <span class="highlight" style={{ marginLeft: 4, padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
+                              {user && (user.username)} ({user && (user.id)} )
+                            </span>
+                          </h4>
+                          <h4 style={{margin: "auto", marginTop:10}}>
+                            FEESRATE: <span class="highlight" style={{ marginLeft: 4, padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
+                              385802469135802 xDAI
+                            </span>
+                          </h4>
+                          <h4 style={{margin: "auto", marginTop:10}}>
+                            OWNER: <span style={{ marginLeft: 4, padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
+                              <Address
+                                  address={item.owner}
+                                  ensProvider={mainnetProvider}
+                                  blockExplorer={blockExplorer}
+                                  fontSize={16}
+                              />
+                            </span>
+                          </h4>
+
                           <AddressInput
-                            style={{marginTop:10}}
+                            style={{marginTop:32}}
                             ensProvider={mainnetProvider}
                             placeholder="transfer to address"
                             value={transferToAddresses[id]}

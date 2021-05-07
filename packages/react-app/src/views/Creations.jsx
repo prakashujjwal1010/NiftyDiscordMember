@@ -52,6 +52,11 @@ export default function Creations({ itemsList, mainnetProvider, blockExplorer })
                   {item.rank}
                 </span>
               </h4>
+              <h4 style={{margin: "auto", marginTop:10}}>
+                FEESRATE: <span class="highlight" style={{ marginLeft: 4, padding: 4, borderRadius: 4, fontWeight: "bolder" }}>
+                  385802469135802 xDAI
+                </span>
+              </h4>
               <div>
                 <h4>owned by: </h4>
                 <Address
